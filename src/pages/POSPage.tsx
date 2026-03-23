@@ -259,7 +259,7 @@ export default function POSPage() {
       discount,
       total,
       payment_method: payMethodStr,
-      payment_status: paymentStatus,
+      payment_status: finalPaymentStatus,
       notes: notesWithSplit,
     }).select().single();
 
