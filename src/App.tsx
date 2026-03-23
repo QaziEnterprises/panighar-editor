@@ -25,6 +25,7 @@ import AuditPage from "@/pages/AuditPage";
 import ProfitCalculatorPage from "@/pages/ProfitCalculatorPage";
 import BackupPage from "@/pages/BackupPage";
 import PriceListPage from "@/pages/PriceListPage";
+import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import { initializeDefaultData } from "@/lib/store";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
@@ -127,6 +128,7 @@ function AppRoutes() {
         <Route path="/profit" element={<ProtectedRoute><ProfitCalculatorPage /></ProtectedRoute>} />
         <Route path="/backup" element={<ProtectedRoute><BackupPage /></ProtectedRoute>} />
         <Route path="/price-list" element={<ProtectedRoute><PriceListPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/audit" element={<ProtectedRoute adminOnly><AuditPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />

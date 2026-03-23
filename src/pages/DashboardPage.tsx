@@ -14,6 +14,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import DailyTrendChart from "@/components/reports/DailyTrendChart";
+import DailySalesSummary from "@/components/DailySalesSummary";
 
 const CHART_COLORS = [
   "hsl(var(--chart-1))",
@@ -384,7 +385,11 @@ export default function DashboardPage() {
         )}
       </motion.div>
 
-      {/* Recent Sales + Top Debtors */}
+      {/* Daily Sales Summary + Recent Sales + Top Debtors */}
+      <div className="grid gap-4 lg:grid-cols-3 mb-6">
+        <DailySalesSummary />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

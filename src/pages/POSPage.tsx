@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { NumberInput } from "@/components/NumberInput";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import CustomerAutocomplete from "@/components/CustomerAutocomplete";
 
 interface Product { id: string; name: string; selling_price: number; quantity: number; sku: string | null; }
 interface Customer { id: string; name: string; phone: string | null; }
@@ -459,30 +460,31 @@ export default function POSPage() {
           <Separator className="mb-3" />
 
           <div className="space-y-3">
-            {/* Customer: Type name or select */}
+            {/* Customer: Autocomplete with combined name + phone search */}
             <div>
               <Label className="text-xs mb-1 block">Customer</Label>
-              <Input
-                placeholder="Type customer name or select below..."
+              <CustomerAutocomplete
+                customers={customers}
                 value={customerNameInput}
-                onChange={(e) => {
-                  setCustomerNameInput(e.target.value);
+                onValueChange={(v) => {
+                  setCustomerNameInput(v);
                   setCustomerId("");
                 }}
-                className="h-8 text-xs mb-1"
+                onCustomerSelect={(c) => {
+                  if (c) {
+                    setCustomerId(c.id);
+                    setCustomerNameInput(c.name);
+                  }
+                }}
+                placeholder="Type customer name or phone..."
               />
-              <div className="flex gap-1">
-                <Select value={customerId} onValueChange={(v) => {
-                  setCustomerId(v);
-                  const c = customers.find(c => c.id === v);
-                  if (c) setCustomerNameInput(c.name);
-                }}>
-                  <SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder="Or select existing..." /></SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}{c.phone ? ` (${c.phone})` : ""}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Button size="icon" variant="outline" className="h-7 w-7 shrink-0" onClick={() => setShowNewCustomer(!showNewCustomer)} title="Add new customer">
+              <div className="flex gap-1 mt-1">
+                {customerId && (
+                  <Badge variant="secondary" className="text-[10px] h-5">
+                    ✓ {customers.find(c => c.id === customerId)?.name}
+                  </Badge>
+                )}
+                <Button size="icon" variant="outline" className="h-7 w-7 shrink-0 ml-auto" onClick={() => setShowNewCustomer(!showNewCustomer)} title="Add new customer">
                   <UserPlus className="h-3.5 w-3.5" />
                 </Button>
               </div>
