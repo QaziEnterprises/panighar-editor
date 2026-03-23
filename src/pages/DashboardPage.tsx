@@ -14,6 +14,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import DailyTrendChart from "@/components/reports/DailyTrendChart";
+import DailySalesSummary from "@/components/DailySalesSummary";
 
 const CHART_COLORS = [
   "hsl(var(--chart-1))",
