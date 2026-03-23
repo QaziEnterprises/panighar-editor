@@ -570,12 +570,17 @@ export default function POSPage() {
                     <span>Paid so far:</span>
                     <span className="font-medium">Rs {splitTotal.toLocaleString()}</span>
                   </div>
-                  {splitRemaining > 0 && (
+                  {splitTotal >= total && total > 0 ? (
+                    <div className="flex justify-between text-green-600 font-medium">
+                      <span>✓ Fully paid</span>
+                      <span>Will be marked as PAID</span>
+                    </div>
+                  ) : splitRemaining > 0 ? (
                     <div className="flex justify-between text-destructive font-medium">
                       <span>Remaining (Due):</span>
-                      <span>Rs {splitRemaining.toLocaleString()}</span>
+                      <span>Rs {splitRemaining.toLocaleString()} — will be DUE</span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </motion.div>
             )}
