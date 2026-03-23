@@ -128,6 +128,7 @@ function AppRoutes() {
         <Route path="/profit" element={<ProtectedRoute><ProfitCalculatorPage /></ProtectedRoute>} />
         <Route path="/backup" element={<ProtectedRoute><BackupPage /></ProtectedRoute>} />
         <Route path="/price-list" element={<ProtectedRoute><PriceListPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/audit" element={<ProtectedRoute adminOnly><AuditPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
