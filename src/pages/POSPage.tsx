@@ -209,11 +209,18 @@ export default function POSPage() {
   const handleCheckout = async () => {
     if (cart.length === 0) { toast.error("Cart is empty"); return; }
 
-    // If partial, validate split payments
+    // If partial, validate split payments and auto-determine status
+    let finalPaymentStatus = paymentStatus;
     if (paymentStatus === "partial") {
       const paidSplit = splitPayments.reduce((s, sp) => s + sp.amount, 0);
       if (paidSplit <= 0) { toast.error("Enter at least one split payment amount"); return; }
       if (paidSplit > total) { toast.error("Split payments exceed total amount"); return; }
+      // Auto-determine: if fully paid via splits, mark as "paid"; otherwise "due"
+      if (paidSplit >= total) {
+        finalPaymentStatus = "paid";
+      } else {
+        finalPaymentStatus = "due";
+      }
     }
 
     // If customer name typed but no customer selected, auto-create
