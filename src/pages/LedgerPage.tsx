@@ -52,56 +52,74 @@ export default function LedgerPage() {
 
     const entries: LedgerEntry[] = [];
 
-    // Opening balance entry
-    entries.push({
-      date: "—", type: "Opening", ref: "—",
-      description: "Opening Balance",
-      debit: 0, credit: Number(contact.opening_balance) || 0, balance: Number(contact.opening_balance) || 0,
-    });
+    // First check ledger_entries table for imported data
+    let ledgerQuery = supabase.from("ledger_entries").select("*").eq("contact_id", contact.id).order("date");
+    if (dateFrom) ledgerQuery = ledgerQuery.gte("date", dateFrom);
+    if (dateTo) ledgerQuery = ledgerQuery.lte("date", dateTo);
+    const { data: ledgerData } = await ledgerQuery;
 
-    // Fetch sales for this customer
-    let salesQuery = supabase.from("sale_transactions").select("*").eq("customer_id", contact.id).order("date");
-    if (dateFrom) salesQuery = salesQuery.gte("date", dateFrom);
-    if (dateTo) salesQuery = salesQuery.lte("date", dateTo);
-    const { data: sales } = await salesQuery;
-
-    for (const s of sales || []) {
+    if (ledgerData && ledgerData.length > 0) {
+      // Use imported ledger entries directly
+      for (const le of ledgerData) {
+        entries.push({
+          date: le.date,
+          type: le.reference_type === 'opening' ? 'Opening' : le.reference_type === 'sale' ? 'Sale' : 'Payment',
+          ref: le.description.split(' - ')[0] || "—",
+          description: le.description,
+          debit: Number(le.debit) || 0,
+          credit: Number(le.credit) || 0,
+          balance: Number(le.balance) || 0,
+        });
+      }
+    } else {
+      // Fallback: compute from sales/purchases
       entries.push({
-        date: s.date, type: "Sale", ref: s.invoice_no || "—",
-        description: `Sale - ${s.payment_method} (${s.payment_status})`,
-        debit: 0, credit: Number(s.total) || 0, balance: 0,
+        date: "—", type: "Opening", ref: "—",
+        description: "Opening Balance",
+        debit: 0, credit: Number(contact.opening_balance) || 0, balance: Number(contact.opening_balance) || 0,
       });
-    }
 
-    // Fetch purchases where this contact is supplier
-    let purchQuery = supabase.from("purchases").select("*").eq("supplier_id", contact.id).order("date");
-    if (dateFrom) purchQuery = purchQuery.gte("date", dateFrom);
-    if (dateTo) purchQuery = purchQuery.lte("date", dateTo);
-    const { data: purchases } = await purchQuery;
+      let salesQuery = supabase.from("sale_transactions").select("*").eq("customer_id", contact.id).order("date");
+      if (dateFrom) salesQuery = salesQuery.gte("date", dateFrom);
+      if (dateTo) salesQuery = salesQuery.lte("date", dateTo);
+      const { data: sales } = await salesQuery;
 
-    for (const p of purchases || []) {
-      entries.push({
-        date: p.date, type: "Purchase", ref: p.reference_no || "—",
-        description: `Purchase - ${p.payment_method} (${p.payment_status})`,
-        debit: Number(p.total) || 0, credit: 0, balance: 0,
+      for (const s of sales || []) {
+        entries.push({
+          date: s.date, type: "Sale", ref: s.invoice_no || "—",
+          description: `Sale - ${s.payment_method} (${s.payment_status})`,
+          debit: 0, credit: Number(s.total) || 0, balance: 0,
+        });
+      }
+
+      let purchQuery = supabase.from("purchases").select("*").eq("supplier_id", contact.id).order("date");
+      if (dateFrom) purchQuery = purchQuery.gte("date", dateFrom);
+      if (dateTo) purchQuery = purchQuery.lte("date", dateTo);
+      const { data: purchases } = await purchQuery;
+
+      for (const p of purchases || []) {
+        entries.push({
+          date: p.date, type: "Purchase", ref: p.reference_no || "—",
+          description: `Purchase - ${p.payment_method} (${p.payment_status})`,
+          debit: Number(p.total) || 0, credit: 0, balance: 0,
+        });
+      }
+
+      entries.sort((a, b) => {
+        if (a.date === "—") return -1;
+        if (b.date === "—") return 1;
+        return a.date.localeCompare(b.date);
       });
-    }
 
-    // Sort by date, then compute running balance
-    entries.sort((a, b) => {
-      if (a.date === "—") return -1;
-      if (b.date === "—") return 1;
-      return a.date.localeCompare(b.date);
-    });
-
-    let runningBalance = 0;
-    for (const entry of entries) {
-      if (entry.type === "Opening") {
-        runningBalance = entry.credit;
-        entry.balance = runningBalance;
-      } else {
-        runningBalance += entry.credit - entry.debit;
-        entry.balance = runningBalance;
+      let runningBalance = 0;
+      for (const entry of entries) {
+        if (entry.type === "Opening") {
+          runningBalance = entry.credit;
+          entry.balance = runningBalance;
+        } else {
+          runningBalance += entry.credit - entry.debit;
+          entry.balance = runningBalance;
+        }
       }
     }
 
