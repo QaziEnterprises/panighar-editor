@@ -275,6 +275,38 @@ export default function POSPage() {
       }
     }
 
+    // Auto-create ledger entry for the customer
+    if (finalCustomerId) {
+      const itemNames = cart.map(c => c.name).join(", ");
+      const description = `Sale ${sale.invoice_no || ""} - ${itemNames}`.substring(0, 500);
+      
+      // Get last balance for this contact
+      const { data: lastEntry } = await supabase
+        .from("ledger_entries")
+        .select("balance")
+        .eq("contact_id", finalCustomerId)
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1);
+      
+      const prevBalance = lastEntry && lastEntry.length > 0 ? Number(lastEntry[0].balance) || 0 : 0;
+      const newBalance = prevBalance + total;
+
+      await supabase.from("ledger_entries").insert({
+        contact_id: finalCustomerId,
+        date: sale.date,
+        description,
+        debit: 0,
+        credit: total,
+        balance: newBalance,
+        reference_type: "sale",
+        reference_id: sale.id,
+      });
+
+      // Update contact current_balance
+      await supabase.from("contacts").update({ current_balance: newBalance }).eq("id", finalCustomerId);
+    }
+
     const customerName = resolveCustomerName();
     setInvoiceData({
       invoice_no: sale.invoice_no || "N/A",
